@@ -1,11 +1,11 @@
 name: Aura Engine Automation
 
 on:
+  push: # Jab bhi code change hoga, ye chalega
+    branches: [ "main" ]
   schedule:
-    # Yeh har 6 ghante me chalega (UTC time me)
     - cron: '0 */6 * * *'
-  workflow_dispatch: # Isse aap manually bhi run kar sakte hain
-
+  workflow_dispatch: 
 jobs:
   run-engine:
     runs-on: ubuntu-latest
