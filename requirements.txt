@@ -6,3 +6,4 @@ pydantic
 orekit-jpype[jdk4py]
 numpy
 requests
+psycopg2-binary
