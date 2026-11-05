@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
@@ -5,8 +6,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, List
 from datetime import datetime
 
-# Database Setup
-SQLALCHEMY_DATABASE_URL = import os
+# --- DATABASE SETUP ---
 SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
@@ -14,11 +14,12 @@ if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://")
 
 if not SQLALCHEMY_DATABASE_URL:
     SQLALCHEMY_DATABASE_URL = "sqlite:///./aura.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Database Models
+# --- DATABASE MODELS ---
 class ConjunctionReport(Base):
     __tablename__ = "conjunction_reports"
     id = Column(Integer, primary_key=True, index=True)
@@ -34,7 +35,7 @@ class ConjunctionReport(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# Pydantic Schemas
+# --- PYDANTIC SCHEMAS ---
 class ReportCreate(BaseModel):
     primary_object: str
     secondary_object: str
@@ -51,7 +52,7 @@ class ReportResponse(ReportCreate):
     class Config:
         from_attributes = True
 
-# Initialize FastAPI
+# --- FASTAPI APP ---
 app = FastAPI(title="Project Aura Cloud API")
 
 def get_db():
@@ -61,7 +62,7 @@ def get_db():
     finally:
         db.close()
 
-# API Endpoints
+# --- ENDPOINTS ---
 @app.get("/")
 def read_root():
     return {"status": "online", "message": "Project Aura Cloud API is running"}
