@@ -6,7 +6,14 @@ from typing import Dict, Any, List
 from datetime import datetime
 
 # Database Setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./aura.db"
+SQLALCHEMY_DATABASE_URL = import os
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+if not SQLALCHEMY_DATABASE_URL:
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./aura.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
