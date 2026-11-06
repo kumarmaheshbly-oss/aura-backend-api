@@ -13,7 +13,10 @@ from org.orekit.propagation.analytical.tle import TLE, TLEPropagator
 from org.orekit.time import AbsoluteDate, TimeScalesFactory
 from org.orekit.frames import FramesFactory
 
-CLOUD_API_URL = "https://aura-backend-api-7s3j.onrender.com"
+# ============================================================
+# NAYA RENDER URL YAHAN HAI
+# ============================================================
+CLOUD_API_URL = "https://aura-backend-api-rsoj.onrender.com"
 
 class Config:
     DURATION_HOURS = 24
@@ -132,8 +135,14 @@ def analyze_one(primary, sec_tle, name, start):
     }
 
 if __name__ == "__main__":
+    print(f"🌐 Connecting to Cloud API: {CLOUD_API_URL}")
+    
     print("🧹 Clearing old cloud database...")
-    requests.delete(f"{CLOUD_API_URL}/api/reports/clear")
+    try:
+        requests.delete(f"{CLOUD_API_URL}/api/reports/clear")
+    except Exception as e:
+        print("❌ Could not connect to cloud API. Is Render awake?", e)
+        exit(1)
     
     print("🚀 Engine started...")
     download_orekit_data_curdir()
