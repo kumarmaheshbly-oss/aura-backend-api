@@ -89,3 +89,56 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_report)
     return db_report
+    # ==========================================
+# NEW FEATURE: Collision Avoidance Maneuver (CAM) Engine
+# ==========================================
+import math
+from pydantic import BaseModel
+
+class ManeuverRequest(BaseModel):
+    object_name: str
+    miss_distance_m: float
+    relative_speed_km_s: float
+    time_to_tca_hours: float
+    required_separation_m: float = 1000.0 
+
+class ManeuverResponse(BaseModel):
+    object_name: str
+    maneuver_required: bool
+    delta_v_m_s: float
+    direction: str
+    fuel_cost_estimate_kg: float
+
+@app.post("/api/maneuver/calculate", response_model=ManeuverResponse)
+def calculate_maneuver(req: ManeuverRequest):
+    if req.miss_distance_m >= req.required_separation_m:
+        return ManeuverResponse(
+            object_name=req.object_name, maneuver_required=False,
+            delta_v_m_s=0.0, direction="None", fuel_cost_estimate_kg=0.0
+        )
+    
+    gap_m = req.required_separation_m - req.miss_distance_m
+    time_seconds = req.time_to_tca_hours * 3600.0
+    
+    if time_seconds <= 0:
+        return ManeuverResponse(
+            object_name=req.object_name, maneuver_required=True,
+            delta_v_m_s=0.0, direction="Too Late (TCA Passed)", fuel_cost_estimate_kg=0.0
+        )
+
+    delta_v = abs(gap_m / time_seconds) 
+    
+    Isp = 300.0
+    g0 = 9.81
+    mass_satellite = 500.0
+    
+    if delta_v > 0:
+        fuel_cost = mass_satellite * (1 - math.exp(-delta_v / (Isp * g0)))
+    else:
+        fuel_cost = 0.0
+
+    return ManeuverResponse(
+        object_name=req.object_name, maneuver_required=True,
+        delta_v_m_s=round(delta_v, 4), direction="Prograde",
+        fuel_cost_estimate_kg=round(fuel_cost, 4)
+    )
